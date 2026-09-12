@@ -22,6 +22,9 @@ public class UAVController : MonoBehaviour
     private int currentWaypointIndex = 0;
     private bool isTargetFound = false;
 
+    // YENİ: Ping-Pong tarama yönü (1: İleri, -1: Geri)
+    private int waypointStep = 1;
+
     void Start()
     {
         // Oyun başlar başlamaz zikzak rotasını hesapla
@@ -45,15 +48,22 @@ public class UAVController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
         }
 
-        // 3. Noktaya ulaştıysa sıradaki noktaya geç
+        // 3. Noktaya ulaştıysa sıradaki noktaya geç (YENİLENMİŞ PİNG-PONG MANTIĞI)
         if (Vector3.Distance(transform.position, targetWaypoint) < 2f)
         {
-            currentWaypointIndex++;
+            currentWaypointIndex += waypointStep;
 
-            // Eğer tüm haritayı tarayıp bitirdiyse (hedef yer değiştirmiş olabilir diye) başa dön
+            // Listenin sonuna geldiyse yönü eksiye çevir ve tarayarak geri dön
             if (currentWaypointIndex >= waypoints.Count)
             {
-                currentWaypointIndex = 0;
+                waypointStep = -1;
+                currentWaypointIndex = waypoints.Count - 2;
+            }
+            // Geri döne döne en başa geldiyse, tekrar ileri doğru tara
+            else if (currentWaypointIndex < 0)
+            {
+                waypointStep = 1;
+                currentWaypointIndex = 1;
             }
         }
 
@@ -97,5 +107,12 @@ public class UAVController : MonoBehaviour
             // Sonraki şeride geçerken yönü tersine çevir (Zikzak mantığı)
             movingUp = !movingUp;
         }
+    }
+
+    // YENİ: SwarmManager tarafından hedef ışınlandığında çağrılır
+    public void ResumeSearch()
+    {
+        isTargetFound = false; // Aramaya devam et
+        Debug.Log("İHA (UAV): Hedef hareket etti, tarama yeniden başlatılıyor...");
     }
 }
