@@ -4,21 +4,22 @@ using UnityEngine.AI;
 public class UGVController : MonoBehaviour
 {
     public Transform targetNode;
-
-    // HATA ÇÖZÜMÜ BURASI: private yerine public yapıldı!
     public NavMeshAgent agent;
 
+    // HATA ÇÖZÜMÜ 1: Eksik olan değişkeni tanımladık
+    private Vector3 lastTargetPos = Vector3.zero;
+
     [Header("Reynolds Boids - Separation Katmanı")]
-    public float separationDistance = 6f; // Etkileşim (itme) eşik mesafesi
-    public float separationForce = 3f;    // İtme şiddeti
-    private UGVController[] allUGVs;      // Sahnedeki diğer araçları tanımak için
+    public float separationDistance = 6f;
+    public float separationForce = 3f;
+    private UGVController[] allUGVs;
     private LineRenderer bidLine;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
 
-        // Unity 6 uyumluluğu: Sarı uyarı (deprecated) almamak için güncel metod
+        // Unity 6 uyumluluğu: Sarı uyarı almamak için güncel metod
         allUGVs = FindObjectsByType<UGVController>(FindObjectsSortMode.None);
 
         // Otomatik LineRenderer Kurulumu (İhale Çizgileri İçin)
@@ -33,14 +34,16 @@ public class UGVController : MonoBehaviour
 
     void Update()
     {
+        // HATA ÇÖZÜMÜ 2: Tüm rotalama işlemleri sadece hedef doluysa çalışacak
         if (targetNode != null && agent != null && agent.isOnNavMesh)
         {
             ApplySeparationBehavior();
 
-            // HATA ÇÖZÜMÜ: Sadece hedef yer değiştirdiyse SetDestination çalışsın
-            if (Vector3.Distance(agent.destination, targetNode.position) > 1f)
+            // TEK VE GÜVENLİ OPTİMİZASYON KONTROLÜ
+            if (Vector3.Distance(lastTargetPos, targetNode.position) > 0.5f)
             {
                 agent.SetDestination(targetNode.position);
+                lastTargetPos = targetNode.position;
             }
         }
     }

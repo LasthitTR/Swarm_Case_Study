@@ -40,6 +40,11 @@ public class SwarmManager : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
 
+            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                SceneManager.LoadScene(0);
+            }
+
             if (Keyboard.current.digit1Key.wasPressedThisFrame) SwitchCamera(1);
             if (Keyboard.current.digit2Key.wasPressedThisFrame) SwitchCamera(2);
             if (Keyboard.current.digit3Key.wasPressedThisFrame) SwitchCamera(3);
